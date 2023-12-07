@@ -27,6 +27,14 @@ function initCalculateButton() {
     });
 }
 
+function init() {
+    initCalculateButton();
+}
+
 async function run() {
     let wasm = await init();
+
+    init();
 }
+
+run();
