@@ -27,14 +27,14 @@ function initCalculateButton() {
     });
 }
 
-function init() {
+function init_elements() {
     initCalculateButton();
 }
 
 async function run() {
     let wasm = await init();
 
-    init();
+    init_elements();
 }
 
 run();

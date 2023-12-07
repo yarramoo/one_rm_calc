@@ -53,8 +53,13 @@ function initCalculateButton() {
         resultElem.innerHTML = resultStr;
     });
 }
+function init_elements() {
+    initCalculateButton();
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let wasm = yield (0, one_rm_calc_js_1.default)();
+        init_elements();
     });
 }
+run();
