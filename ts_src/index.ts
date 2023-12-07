@@ -1,4 +1,4 @@
-import init, { find_onerm } from './pkg/one_rm_calc.js'
+import init, { find_onerm } from '../pkg/one_rm_calc.js'
 
 function initCalculateButton() {
     let buttonElem = document.getElementById('calculateButton') as HTMLButtonElement;
@@ -25,6 +25,8 @@ function initCalculateButton() {
     
         resultElem.innerHTML = resultStr;
     });
+
+    console.log("Initted button...");
 }
 
 function init_elements() {
@@ -33,6 +35,8 @@ function init_elements() {
 
 async function run() {
     let wasm = await init();
+
+    alert("HERE!");
 
     init_elements();
 }
