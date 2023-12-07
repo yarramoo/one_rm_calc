@@ -31,6 +31,11 @@ function initCalculateButton() {
             resultElem.innerHTML = resultStr;
             return;
         }
+        // Check that the number of reps is sensible
+        if (reps === 0) {
+            playVideo("../assets/videos/zero.mp4");
+            return;
+        }
         // Calculate the one RM 
         let one_rm = find_onerm(reps, weight);
         if (one_rm === undefined) {
@@ -46,6 +51,31 @@ function initCalculateButton() {
 }
 function init_elements() {
     initCalculateButton();
+}
+function playVideo(path) {
+    var videoElement = document.getElementById('video');
+    videoElement.src = path;
+    videoElement.style.display = 'block';
+    // Play the video
+    videoElement.play();
+    // Wait for metadata to be loaded
+    var metadataLoaded = new Promise(function (resolve) {
+        if (videoElement.readyState >= 2) {
+            resolve();
+        }
+        else {
+            videoElement.addEventListener('loadedmetadata', function () {
+                resolve();
+            });
+        }
+    });
+    metadataLoaded.then(function () {
+        // Pause and hide the video after its duration
+        setTimeout(function () {
+            videoElement.pause();
+            videoElement.style.display = 'none';
+        }, videoElement.duration * 1000); // Convert duration from seconds to milliseconds
+    });
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
