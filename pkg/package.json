@@ -1,0 +1,14 @@
+{
+  "name": "one_rm_calc",
+  "version": "0.1.0",
+  "files": [
+    "one_rm_calc_bg.wasm",
+    "one_rm_calc.js",
+    "one_rm_calc.d.ts"
+  ],
+  "module": "one_rm_calc.js",
+  "types": "one_rm_calc.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
