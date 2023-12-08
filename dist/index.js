@@ -14,6 +14,7 @@ function initCalculateButton() {
     let repsInputElem = document.getElementById('repsInput');
     let weightInputElem = document.getElementById('weightInput');
     let resultElem = document.getElementById('result');
+    let gruntCounter = 0;
     buttonElem.addEventListener('click', function () {
         // clearScreen();
         let reps = parseInt(repsInputElem.value);
@@ -53,6 +54,16 @@ function initCalculateButton() {
             resultStr = "You're pretty big bro.... ORM: " + one_rm;
             let imageElem = document.getElementById("image");
             imageElem.src = "../assets/images/un_hombre_musculoso.jpg";
+            imageElem.style.display = 'block';
+            gruntCounter++;
+            let audioElem = document.getElementById("audio");
+            if (gruntCounter % 6 == 0) {
+                audioElem.src = "../assets/audio/tom_grunt.wav";
+            }
+            else {
+                audioElem.src = "../assets/audio/mitch_grunt.wav";
+            }
+            audioElem.play();
         }
         else {
             resultStr = one_rm.toFixed(2);

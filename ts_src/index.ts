@@ -9,6 +9,8 @@ function initCalculateButton() {
     let weightInputElem = document.getElementById('weightInput') as HTMLInputElement;
     let resultElem = document.getElementById('result') as HTMLParagraphElement;
 
+    let gruntCounter = 0;
+
     buttonElem.addEventListener('click', function() {
         // clearScreen();
         let reps = parseInt(repsInputElem.value);
@@ -44,8 +46,19 @@ function initCalculateButton() {
             resultStr = "But just give me a few, okay. Now, just have to groan into your camera. Your camera. I feel like i can feel the odor in that one. All right, so if you got this, you guys Okay. Oh my god. Some all right. All right together. All right." 
         } else if (one_rm > 200) {
             resultStr = "You're pretty big bro.... ORM: " + one_rm;
+
             let imageElem = document.getElementById("image") as HTMLImageElement;
-            imageElem.src = "../assets/images/un_hombre_musculoso.jpg"
+            imageElem.src = "../assets/images/un_hombre_musculoso.jpg";
+            imageElem.style.display = 'block';
+
+            gruntCounter++;
+            let audioElem = document.getElementById("audio") as HTMLAudioElement;
+            if (gruntCounter % 6 == 0) {
+                audioElem.src = "../assets/audio/tom_grunt.wav";
+            } else {
+                audioElem.src = "../assets/audio/mitch_grunt.wav";
+            }
+            audioElem.play();
         } else {
             resultStr = one_rm.toFixed(2);
         }
