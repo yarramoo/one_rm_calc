@@ -1,5 +1,8 @@
 import init, { find_onerm } from '../pkg/one_rm_calc.js'
 
+// 500 -> 501 THOR + EDDIE 
+
+
 function initCalculateButton() {
     let buttonElem = document.getElementById('calculateButton') as HTMLButtonElement;
     let repsInputElem = document.getElementById('repsInput') as HTMLInputElement;
@@ -7,6 +10,7 @@ function initCalculateButton() {
     let resultElem = document.getElementById('result') as HTMLParagraphElement;
 
     buttonElem.addEventListener('click', function() {
+        // clearScreen();
         let reps = parseInt(repsInputElem.value);
         let weight = parseFloat(weightInputElem.value);
         var resultStr = "";
@@ -18,6 +22,8 @@ function initCalculateButton() {
             resultStr = "You've done a wild number of reps. For real, that \"number\" is wild. I don't believe that is a number";
         } else if (Number.isNaN(weight)) {
             resultStr = "Unearthly weight my dude. Certainly unparsable. Try again."
+        } else if (reps === 127 && weight === 202) {
+            resultStr = "You Spineless Tagless G-machine";
         }
         if (resultStr != "") {
             resultElem.innerHTML = resultStr;
@@ -34,7 +40,13 @@ function initCalculateButton() {
 
         if (one_rm === undefined) {
             resultStr = "What the heck did you give me??";
-        }else {
+        } else if (Math.abs(one_rm - 30.0) < 0.001) {
+            resultStr = "But just give me a few, okay. Now, just have to groan into your camera. Your camera. I feel like i can feel the odor in that one. All right, so if you got this, you guys Okay. Oh my god. Some all right. All right together. All right." 
+        } else if (one_rm > 200) {
+            resultStr = "You're pretty big bro.... ORM: " + one_rm;
+            let imageElem = document.getElementById("image") as HTMLImageElement;
+            imageElem.src = "../assets/images/un_hombre_musculoso.jpg"
+        } else {
             resultStr = one_rm.toFixed(2);
         }
     

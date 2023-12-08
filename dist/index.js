@@ -8,12 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import init, { find_onerm } from '../pkg/one_rm_calc.js';
+// 500 -> 501 THOR + EDDIE 
 function initCalculateButton() {
     let buttonElem = document.getElementById('calculateButton');
     let repsInputElem = document.getElementById('repsInput');
     let weightInputElem = document.getElementById('weightInput');
     let resultElem = document.getElementById('result');
     buttonElem.addEventListener('click', function () {
+        // clearScreen();
         let reps = parseInt(repsInputElem.value);
         let weight = parseFloat(weightInputElem.value);
         var resultStr = "";
@@ -26,6 +28,9 @@ function initCalculateButton() {
         }
         else if (Number.isNaN(weight)) {
             resultStr = "Unearthly weight my dude. Certainly unparsable. Try again.";
+        }
+        else if (reps === 127 && weight === 202) {
+            resultStr = "You Spineless Tagless G-machine";
         }
         if (resultStr != "") {
             resultElem.innerHTML = resultStr;
@@ -40,6 +45,14 @@ function initCalculateButton() {
         let one_rm = find_onerm(reps, weight);
         if (one_rm === undefined) {
             resultStr = "What the heck did you give me??";
+        }
+        else if (Math.abs(one_rm - 30.0) < 0.001) {
+            resultStr = "But just give me a few, okay. Now, just have to groan into your camera. Your camera. I feel like i can feel the odor in that one. All right, so if you got this, you guys Okay. Oh my god. Some all right. All right together. All right.";
+        }
+        else if (one_rm > 200) {
+            resultStr = "You're pretty big bro.... ORM: " + one_rm;
+            let imageElem = document.getElementById("image");
+            imageElem.src = "../assets/images/un_hombre_musculoso.jpg";
         }
         else {
             resultStr = one_rm.toFixed(2);
