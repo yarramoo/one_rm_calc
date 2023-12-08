@@ -5,6 +5,8 @@ use rand::seq::SliceRandom;
 
 const STARTING_SHAPE: Shape = Shape::T;
 
+#[wasm_bindgen]
+#[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Cell {
     Taken,
@@ -18,6 +20,7 @@ impl Display for Cell {
     }
 }
 
+#[wasm_bindgen]
 #[derive(PartialEq, Eq)]
 enum Direction {
     Up, Down, Left, Right
@@ -96,25 +99,34 @@ fn rotate_squares(squares: &mut [Position]) {
 
 impl Shape {
     fn squares_taken(&self) -> Vec<Position> {
-        match self {
+        let coords = match self {
             Shape::T => {
-                vec![(0,0), (-1,0), (0,1), (1,0)].iter().map(Position::from).collect()
+                vec![(0,0), (-1,0), (0,1), (1,0)]
             },
             Shape::Z => {
-                vec![(0,0), (0,1), (-1,1), (1,0)].iter().map(Position::from).collect()
+                vec![(0,0), (0,1), (-1,1), (1,0)]
             },
-            _ => todo!(),
-            // Shape::O => ,
-            // Shape::S => todo!(),
-            // Shape::I => todo!(),
-            // Shape::L => todo!(),
-        }
+            Shape::O => {
+                vec![(0,0), (0,1), (1,0), (1,1)]
+            },
+            Shape::S => {
+                vec![(0,0), (0,1), (1,1), (-1,0)]
+            },
+            Shape::I => {
+                vec![(0,0), (0,-1), (0,1), (0,2)]
+            },
+            Shape::L => {
+                vec![(0,0), (1,0), (0,1), (0,2)]
+            },
+        };
+        coords.iter().map(Position::from).collect()
     }
     // fn squares_taken_with_rotation(&self, rotation: Rotation) -> Vec<Position> {
 
     // }
 }
 
+#[wasm_bindgen]
 struct Tetris {
     width: u32,
     height: u32,
@@ -125,22 +137,6 @@ struct Tetris {
 }
 
 impl Tetris {
-    fn new(width: u32, height: u32) -> Self {
-        let shape = STARTING_SHAPE;
-        let shape_squares = shape.squares_taken().iter_mut().map(|position| {
-            position.shift(&Direction::Up, height-4)
-                    .shift(&Direction::Right, width / 2)
-        }).collect();
-
-        Tetris { 
-            width, 
-            height, 
-            grid: [Cell::Free].repeat((width * height) as usize),
-            shape, 
-            shape_squares: shape_squares,
-            settled: false,
-        }
-    }
     fn get_index(&self, x: u32, y: u32) -> u32 {
         self.width * y + x
     }
@@ -152,9 +148,9 @@ impl Tetris {
         }
         position.y as u32 * width + position.x as u32
     }
-    fn move_shape(&mut self, dir: Direction) -> bool {
+    fn move_shape(&mut self, dir: &Direction) -> bool {
         // Return true if the shape was able to move. False if not
-        if dir == Direction::Up {
+        if *dir == Direction::Up {
             panic!("Player tried to move block up??");
         }
         
@@ -195,7 +191,51 @@ impl Tetris {
 
         move_possible
     }
-    fn grid(&self) -> *const Cell {
+}
+
+#[wasm_bindgen]
+impl Tetris {
+    pub fn new(width: u32, height: u32) -> Self {
+        let shape = STARTING_SHAPE;
+        let shape_squares = shape.squares_taken().iter_mut().map(|position| {
+            position.shift(&Direction::Up, height-4)
+                    .shift(&Direction::Right, width / 2)
+        }).collect();
+
+        Tetris { 
+            width, 
+            height, 
+            grid: [Cell::Free].repeat((width * height) as usize),
+            shape, 
+            shape_squares: shape_squares,
+            settled: false,
+        }
+    }
+    pub fn handle_move(&mut self, dir: &Direction) -> bool {
+        let shape_moved = self.move_shape(dir);
+
+        // If the shape hit the bottom then we must generate a new shape
+        if !shape_moved && *dir == Direction::Down {
+            self.shape = Shape::gen_shape();
+            self.shape_squares = self.shape.squares_taken()
+                .iter_mut()
+                .map(|position| {
+                    position.shift(&Direction::Up, self.height - 2)
+                    .shift(&Direction::Right, self.width / 2) 
+                })
+                .collect();
+            for position in self.shape_squares.iter() {
+                let idx = Tetris::get_index_from_position(position, self.width, self.height);
+                if self.grid[idx as usize] == Cell::Taken {
+                    // Game Over!
+                    return false;
+                }
+                self.grid[idx as usize] = Cell::Taken;
+            }
+        }
+        true
+    }
+    pub fn grid(&self) -> *const Cell {
         self.grid.as_ptr()
     }
 }
@@ -216,7 +256,7 @@ impl Display for Tetris {
 fn test_tetris() {
     let mut tetris = Tetris::new(10, 20);
 
-    while tetris.move_shape(Direction::Down) {
+    while tetris.move_shape(&Direction::Down) {
         print!("\x1B[2J");
         println!("{}", &tetris);
         sleep(Duration::from_millis(500));

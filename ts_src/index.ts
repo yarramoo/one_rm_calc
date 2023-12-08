@@ -53,7 +53,7 @@ function initCalculateButton() {
 
             gruntCounter++;
             let audioElem = document.getElementById("audio") as HTMLAudioElement;
-            if (gruntCounter % 6 == 0) {
+            if (gruntCounter % 5 == 0) {
                 audioElem.src = "../assets/audio/tom_grunt.wav";
             } else {
                 audioElem.src = "../assets/audio/mitch_grunt.wav";
