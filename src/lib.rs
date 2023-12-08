@@ -1,4 +1,5 @@
 mod utils;
+mod tetris;
 
 use wasm_bindgen::prelude::*;
 
@@ -32,5 +33,5 @@ fn test_requirements() {
 
 #[test]
 fn test_find_onerm() {
-    println!("{}", find_onerm(11, 200.));
+    println!("{:?}", find_onerm(11, 200.));
 }
