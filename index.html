@@ -4,6 +4,19 @@
     <meta charset="utf-8">
     <title>Hello wasm-pack!</title>
   </head>
+  <style>
+    body {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
   <body>
 
     <h1>Simple One RM Calculator</h1>
@@ -26,6 +39,7 @@
 
     <img id="image" style="display: none;"/>
     <audio id="audio" style="display: none;"></audio>
+    <canvas id="canvas"></canvas>
 
     <script src="/dist/index.js" type="module"></script>
   </body>

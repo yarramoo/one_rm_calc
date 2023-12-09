@@ -11,17 +11,62 @@ export function say_hi(name: string): string;
 * @returns {number | undefined}
 */
 export function find_onerm(reps: number, weight: number): number | undefined;
+/**
+*/
+export enum Direction {
+  Up = 0,
+  Down = 1,
+  Left = 2,
+  Right = 3,
+}
+/**
+*/
+export enum Cell {
+  Taken = 0,
+  Free = 1,
+}
+/**
+*/
+export class Position {
+  free(): void;
+}
+/**
+*/
+export class Tetris {
+  free(): void;
+/**
+* @param {number} width
+* @param {number} height
+* @returns {Tetris}
+*/
+  static new(width: number, height: number): Tetris;
+/**
+* @param {Direction} dir
+* @returns {boolean}
+*/
+  handle_move(dir: Direction): boolean;
+/**
+* @returns {number}
+*/
+  grid(): number;
+}
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly __wbg_position_free: (a: number) => void;
+  readonly __wbg_tetris_free: (a: number) => void;
+  readonly tetris_new: (a: number, b: number) => number;
+  readonly tetris_handle_move: (a: number, b: number) => number;
+  readonly tetris_grid: (a: number) => number;
   readonly say_hi: (a: number, b: number, c: number) => void;
   readonly find_onerm: (a: number, b: number, c: number) => void;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+  readonly __wbindgen_exn_store: (a: number) => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;

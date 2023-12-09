@@ -1,14 +1,18 @@
 use std::fmt::Display;
-use std::time::Duration;
-use std::thread::sleep;
+// use std::time::Duration;
+// use std::thread::sleep;
 use rand::seq::SliceRandom;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::convert::RefFromWasmAbi;
+
+use crate::utils::set_panic_hook;
 
 const STARTING_SHAPE: Shape = Shape::T;
 
 #[wasm_bindgen]
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-enum Cell {
+pub enum Cell {
     Taken,
     Free
 }
@@ -21,22 +25,25 @@ impl Display for Cell {
 }
 
 #[wasm_bindgen]
-#[derive(PartialEq, Eq)]
-enum Direction {
+#[repr(u8)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Direction {
     Up, Down, Left, Right
 }
 
+#[wasm_bindgen]
 #[derive(Debug)]
 struct Position {
     x: i32,
     y: i32,
 }
 
+#[wasm_bindgen]
 impl Position {
     fn new(x: i32, y: i32) -> Self {
         Self { x, y }
     }
-    fn shift(&self, dir: &Direction, distance: u32) -> Position {
+    fn shift(&self, dir: Direction, distance: u32) -> Position {
         let distance = distance as i32;
         match dir {
             Direction::Up => (self.x, self.y + distance).into(),
@@ -127,7 +134,7 @@ impl Shape {
 }
 
 #[wasm_bindgen]
-struct Tetris {
+pub struct Tetris {
     width: u32,
     height: u32,
     grid: Vec<Cell>,
@@ -148,9 +155,9 @@ impl Tetris {
         }
         position.y as u32 * width + position.x as u32
     }
-    fn move_shape(&mut self, dir: &Direction) -> bool {
+    fn move_shape(&mut self, dir: Direction) -> bool {
         // Return true if the shape was able to move. False if not
-        if *dir == Direction::Up {
+        if dir == Direction::Up {
             panic!("Player tried to move block up??");
         }
         
@@ -162,7 +169,7 @@ impl Tetris {
         // Then check if moved-to-cells are taken or out-of-bounds
         let mut move_possible = true;
         for position in self.shape_squares.iter() {
-            let new_position = position.shift(&dir, 1); 
+            let new_position = position.shift(dir, 1); 
             // If out-of-bounds cannot move 
             if new_position.y < 0 || new_position.x < 0 ||
                 new_position.x >= self.width as i32 
@@ -180,7 +187,7 @@ impl Tetris {
         // If not apply move
         if move_possible {
             for position in self.shape_squares.iter_mut() {
-                *position = position.shift(&dir, 1);
+                *position = position.shift(dir, 1);
             }
         }
         // Place down taken cells
@@ -196,10 +203,11 @@ impl Tetris {
 #[wasm_bindgen]
 impl Tetris {
     pub fn new(width: u32, height: u32) -> Self {
+        set_panic_hook();
         let shape = STARTING_SHAPE;
         let shape_squares = shape.squares_taken().iter_mut().map(|position| {
-            position.shift(&Direction::Up, height-4)
-                    .shift(&Direction::Right, width / 2)
+            position.shift(Direction::Up, height-4)
+                    .shift(Direction::Right, width / 2)
         }).collect();
 
         Tetris { 
@@ -211,17 +219,17 @@ impl Tetris {
             settled: false,
         }
     }
-    pub fn handle_move(&mut self, dir: &Direction) -> bool {
+    pub fn handle_move(&mut self, dir: Direction) -> bool {
         let shape_moved = self.move_shape(dir);
 
         // If the shape hit the bottom then we must generate a new shape
-        if !shape_moved && *dir == Direction::Down {
+        if !shape_moved && dir == Direction::Down {
             self.shape = Shape::gen_shape();
             self.shape_squares = self.shape.squares_taken()
                 .iter_mut()
                 .map(|position| {
-                    position.shift(&Direction::Up, self.height - 2)
-                    .shift(&Direction::Right, self.width / 2) 
+                    position.shift(Direction::Up, self.height - 4)
+                    .shift(Direction::Right, self.width / 2) 
                 })
                 .collect();
             for position in self.shape_squares.iter() {
@@ -259,6 +267,6 @@ fn test_tetris() {
     while tetris.move_shape(&Direction::Down) {
         print!("\x1B[2J");
         println!("{}", &tetris);
-        sleep(Duration::from_millis(500));
+        // sleep(Duration::from_millis(500));
     }
 }

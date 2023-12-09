@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import init, { find_onerm } from '../pkg/one_rm_calc.js';
+import init, { find_onerm, Tetris, Cell, Direction } from '../pkg/one_rm_calc.js';
 // 500 -> 501 THOR + EDDIE 
 function initCalculateButton() {
     let buttonElem = document.getElementById('calculateButton');
@@ -20,6 +20,50 @@ function initCalculateButton() {
         let reps = parseInt(repsInputElem.value);
         let weight = parseFloat(weightInputElem.value);
         var resultStr = "";
+        // Check that the inputs arae actually numbers
+        if (!Number.isNaN(reps) && !Number.isNaN(weight)) {
+            // Calculate the one RM 
+            let one_rm = find_onerm(reps, weight);
+            // Output based on one RM calculation
+            if (one_rm === undefined) {
+                resultStr = "What the heck did you give me??";
+            }
+            else if (Math.abs(one_rm - 30.0) < 0.001) {
+                resultStr = "But just give me a few, okay. Now, just have to groan into your camera. Your camera. I feel like i can feel the odor in that one. All right, so if you got this, you guys Okay. Oh my god. Some all right. All right together. All right.";
+            }
+            else if (reps === 127 && weight === 202) {
+                resultStr = "You Spineless Tagless G-machine";
+            }
+            else if (reps === 0) {
+                playVideo("../assets/videos/zero.mp4");
+                return;
+            }
+            else if (one_rm > 140) {
+                resultStr = "You're pretty big bro.... ORM: " + one_rm.toFixed(2);
+                let imageElem = document.getElementById("image");
+                imageElem.src = "../assets/images/un_hombre_musculoso.jpg";
+                imageElem.style.display = 'block';
+                gruntCounter++;
+                let audioElem = document.getElementById("audio");
+                if (gruntCounter % 4 == 0) {
+                    audioElem.src = "../assets/audio/tom_grunt.wav";
+                }
+                else {
+                    audioElem.src = "../assets/audio/mitch_grunt.wav";
+                }
+                audioElem.play();
+            }
+            else {
+                resultStr = one_rm.toFixed(2);
+            }
+            // Set result value and exit
+            resultElem.innerHTML = resultStr;
+            return;
+        }
+        else {
+            // We were given some non-number input
+        }
+        // Else 
         // Check that the values inputted parsed correctly
         if (Number.isNaN(reps) && Number.isNaN(weight)) {
             resultStr = "Wtf have you given me??";
@@ -30,51 +74,102 @@ function initCalculateButton() {
         else if (Number.isNaN(weight)) {
             resultStr = "Unearthly weight my dude. Certainly unparsable. Try again.";
         }
-        else if (reps === 127 && weight === 202) {
-            resultStr = "You Spineless Tagless G-machine";
-        }
         if (resultStr != "") {
             resultElem.innerHTML = resultStr;
             return;
         }
-        // Check that the number of reps is sensible
-        if (reps === 0) {
-            playVideo("../assets/videos/zero.mp4");
-            return;
-        }
-        // Calculate the one RM 
-        let one_rm = find_onerm(reps, weight);
-        if (one_rm === undefined) {
-            resultStr = "What the heck did you give me??";
-        }
-        else if (Math.abs(one_rm - 30.0) < 0.001) {
-            resultStr = "But just give me a few, okay. Now, just have to groan into your camera. Your camera. I feel like i can feel the odor in that one. All right, so if you got this, you guys Okay. Oh my god. Some all right. All right together. All right.";
-        }
-        else if (one_rm > 200) {
-            resultStr = "You're pretty big bro.... ORM: " + one_rm;
-            let imageElem = document.getElementById("image");
-            imageElem.src = "../assets/images/un_hombre_musculoso.jpg";
-            imageElem.style.display = 'block';
-            gruntCounter++;
-            let audioElem = document.getElementById("audio");
-            if (gruntCounter % 6 == 0) {
-                audioElem.src = "../assets/audio/tom_grunt.wav";
-            }
-            else {
-                audioElem.src = "../assets/audio/mitch_grunt.wav";
-            }
-            audioElem.play();
-        }
-        else {
-            resultStr = one_rm.toFixed(2);
-        }
         resultElem.innerHTML = resultStr;
-        console.log("Updated button");
     });
-    console.log("Initted button...");
 }
 function init_elements() {
     initCalculateButton();
+}
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+function playTetris(wasm) {
+    console.log("Initting tetris");
+    const CELL_SIZE = 30; // px
+    const GRID_COLOR = "#CCCCCC";
+    const DEAD_COLOR = "#FFFFFF";
+    const ALIVE_COLOR = "#000000";
+    const width = 10;
+    const height = 20;
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext('2d');
+    canvas.height = (CELL_SIZE + 1) * height + 1;
+    canvas.width = (CELL_SIZE + 1) * width + 1;
+    let tetris = Tetris.new(width, height + 4);
+    function getIndex(row, col) {
+        return row * width + col;
+    }
+    function handleKeyPress(event) {
+        switch (event.key) {
+            case "ArrowLeft":
+                tetris.handle_move(Direction.Left);
+                break;
+            case "ArrowRight":
+                tetris.handle_move(Direction.Right);
+                break;
+            case "ArrowDown":
+                tetris.handle_move(Direction.Down);
+                break;
+        }
+        drawGrid(ctx);
+        drawCells(wasm);
+    }
+    function renderLoop() {
+        return __awaiter(this, void 0, void 0, function* () {
+            drawGrid(ctx);
+            drawCells(wasm);
+            tetris.handle_move(Direction.Down);
+            yield sleep(200);
+            renderLoop();
+        });
+    }
+    const drawGrid = (ctx) => {
+        ctx.beginPath();
+        ctx.strokeStyle = GRID_COLOR;
+        // Vertical lines.
+        for (let i = 0; i <= width; i++) {
+            ctx.moveTo(i * (CELL_SIZE + 1) + 1, 0);
+            ctx.lineTo(i * (CELL_SIZE + 1) + 1, (CELL_SIZE + 1) * height + 1);
+        }
+        // Horizontal lines.
+        for (let j = 0; j <= height; j++) {
+            ctx.moveTo(0, j * (CELL_SIZE + 1) + 1);
+            ctx.lineTo((CELL_SIZE + 1) * width + 1, j * (CELL_SIZE + 1) + 1);
+        }
+        ctx.stroke();
+    };
+    const drawCells = (wasm) => {
+        const cellsPtr = tetris.grid();
+        const cells = new Uint8Array(wasm.memory.buffer, cellsPtr, width * height);
+        ctx.beginPath();
+        // Alive cells.
+        ctx.fillStyle = ALIVE_COLOR;
+        for (let row = 0; row < height; row++) {
+            for (let col = 0; col < width; col++) {
+                const idx = getIndex(row, col);
+                if (cells[idx] !== Cell.Taken) {
+                    continue;
+                }
+                ctx.fillRect(col * (CELL_SIZE + 1) + 1, row * (CELL_SIZE + 1) + 1, CELL_SIZE, CELL_SIZE);
+            }
+        }
+        // Dead cells.
+        ctx.fillStyle = DEAD_COLOR;
+        for (let row = 0; row < height; row++) {
+            for (let col = 0; col < width; col++) {
+                const idx = getIndex(row, col);
+                if (cells[idx] !== Cell.Free) {
+                    continue;
+                }
+                ctx.fillRect(col * (CELL_SIZE + 1) + 1, row * (CELL_SIZE + 1) + 1, CELL_SIZE, CELL_SIZE);
+            }
+        }
+        ctx.stroke();
+    };
+    document.addEventListener("keydown", handleKeyPress);
+    renderLoop();
 }
 function playVideo(path) {
     var videoElement = document.getElementById('video');
@@ -104,6 +199,7 @@ function playVideo(path) {
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let wasm = yield init();
+        playTetris(wasm);
         init_elements();
     });
 }
