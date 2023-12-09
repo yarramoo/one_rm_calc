@@ -26,7 +26,7 @@ function initCalculateButton(wasm: InitOutput) {
             } else if (reps === 0) {
                 playVideo("../assets/videos/zero.mp4");
                 return;
-            } else if (true) {
+            } else if (reps > 12) {
                 resultStr = "Now why would you ask me to approximate your one rep max based on data indicating the performance of your type I muscle fibers? Do you know how cursed approximating that would be? One rep maxes use FAST TWITCH fibers (type II) predominantly. What good is your " + reps + " reps to me? Read a book. Try again with less than 12 reps";
             }
             if (resultStr !== "") {
