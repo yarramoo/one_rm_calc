@@ -25,11 +25,16 @@ function initCalculateButton(wasm) {
             // Some initial checks of the input values...
             if (reps === 127 && weight === 202) {
                 resultStr = "You Spineless Tagless G-machine";
-                resultElem.innerHTML = resultStr;
-                return;
             }
             else if (reps === 0) {
                 playVideo("../assets/videos/zero.mp4");
+                return;
+            }
+            else if (true) {
+                resultStr = "Now why would you ask me to approximate your one rep max based on data indicating the performance of your type I muscle fibers? Do you know how cursed approximating that would be? One rep maxes use FAST TWITCH fibers (type II) predominantly. What good is your " + reps + " reps to me? Read a book. Try again with less than 12 reps";
+            }
+            if (resultStr !== "") {
+                resultElem.innerHTML = resultStr;
                 return;
             }
             // Calculate the one RM 
