@@ -38,7 +38,6 @@ struct Position {
     y: i32,
 }
 
-#[wasm_bindgen]
 impl Position {
     fn new(x: i32, y: i32) -> Self {
         Self { x, y }
@@ -96,6 +95,8 @@ impl Shape {
 }
 
 fn rotate_squares(squares: &mut [Position]) {
+    // Todo - this only works if the shape is positioned around (0,0).
+    // shift to (0,0) -> rotate -> shift back
     for position in squares {
         let x = position.x;
         let y = position.y;
@@ -140,7 +141,6 @@ pub struct Tetris {
     grid: Vec<Cell>,
     shape: Shape,
     shape_squares: Vec<Position>,
-    settled: bool,
 }
 
 impl Tetris {
@@ -203,7 +203,7 @@ impl Tetris {
 #[wasm_bindgen]
 impl Tetris {
     pub fn new(width: u32, height: u32) -> Self {
-        set_panic_hook();
+        set_panic_hook(); // Seems cursed putting this here but we don't have a main so...
         let shape = STARTING_SHAPE;
         let shape_squares = shape.squares_taken().iter_mut().map(|position| {
             position.shift(Direction::Up, height-4)
@@ -216,7 +216,6 @@ impl Tetris {
             grid: [Cell::Free].repeat((width * height) as usize),
             shape, 
             shape_squares: shape_squares,
-            settled: false,
         }
     }
     pub fn handle_move(&mut self, dir: Direction) -> bool {
