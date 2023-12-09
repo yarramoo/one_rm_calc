@@ -4,7 +4,7 @@ import init, { find_onerm, InitOutput, Tetris, Cell, Direction } from '../pkg/on
 // 500 -> 501 THOR + EDDIE 
 
 
-function initCalculateButton() {
+function initCalculateButton(wasm: InitOutput) {
     let buttonElem = document.getElementById('calculateButton') as HTMLButtonElement;
     let repsInputElem = document.getElementById('repsInput') as HTMLInputElement;
     let weightInputElem = document.getElementById('weightInput') as HTMLInputElement;
@@ -18,8 +18,17 @@ function initCalculateButton() {
         let weight = parseFloat(weightInputElem.value);
         var resultStr = "";
 
-        // Check that the inputs arae actually numbers
+        // Check that the inputs are actually numbers
         if (!Number.isNaN(reps) && !Number.isNaN(weight)) {
+            // Some initial checks of the input values...
+            if (reps === 127 && weight === 202) {
+                resultStr = "You Spineless Tagless G-machine";
+                resultElem.innerHTML = resultStr; 
+                return;
+            } else if (reps === 0) {
+                playVideo("../assets/videos/zero.mp4");
+                return;
+            }
             // Calculate the one RM 
             let one_rm = find_onerm(reps, weight);
             // Output based on one RM calculation
@@ -27,16 +36,12 @@ function initCalculateButton() {
                 resultStr = "What the heck did you give me??";
             } else if (Math.abs(one_rm - 30.0) < 0.001) {
                 resultStr = "But just give me a few, okay. Now, just have to groan into your camera. Your camera. I feel like i can feel the odor in that one. All right, so if you got this, you guys Okay. Oh my god. Some all right. All right together. All right." 
-            } else if (reps === 127 && weight === 202) {
-                resultStr = "You Spineless Tagless G-machine";
-            } else if (reps === 0) {
-                playVideo("../assets/videos/zero.mp4");
-                return;
             } else if (one_rm > 140) {
                 resultStr = "You're pretty big bro.... ORM: " + one_rm.toFixed(2);
 
                 let imageElem = document.getElementById("image") as HTMLImageElement;
                 imageElem.src = "../assets/images/un_hombre_musculoso.jpg";
+                imageElem.width /= 2;
                 imageElem.style.display = 'block';
 
                 gruntCounter++;
@@ -55,6 +60,9 @@ function initCalculateButton() {
             return;
         } else {
             // We were given some non-number input
+            if (repsInputElem.value === "tetris") {
+                playTetris(wasm);
+            }
         }
 
         // Else 
@@ -78,8 +86,8 @@ function initCalculateButton() {
     });
 }
 
-function init_elements() {
-    initCalculateButton();
+function init_elements(wasm: InitOutput) {
+    initCalculateButton(wasm);
 }
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -226,8 +234,7 @@ function playVideo(path: string) {
 async function run() {
     let wasm = await init();
 
-    playTetris(wasm);
-    init_elements();
+    init_elements(wasm);
 }
 
 run();
