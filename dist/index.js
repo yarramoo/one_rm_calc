@@ -49,9 +49,10 @@ function initCalculateButton(wasm) {
             else if (one_rm > 140) {
                 resultStr = "You're pretty big bro.... ORM: " + one_rm.toFixed(2);
                 let imageElem = document.getElementById("image");
-                imageElem.src = "../assets/images/un_hombre_musculoso.jpg";
-                imageElem.width /= 2;
                 imageElem.style.display = 'block';
+                imageElem.width /= 2;
+                // imageElem.src = "../assets/images/un_hombre_musculoso.jpg";
+                // Whatever, I'm only using this source for now so just setting in html
                 gruntCounter++;
                 let audioElem = document.getElementById("audio");
                 if (gruntCounter % 4 == 0) {
@@ -208,6 +209,64 @@ function playVideo(path) {
         }, videoElement.duration * 1000); // Convert duration from seconds to milliseconds
     });
 }
+function preloadImage(src) {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => {
+            resolve();
+        };
+        image.onerror = (error) => {
+            reject(error);
+        };
+        image.src = src;
+    });
+}
+// Example usage
+const imageSourcesToPreload = [
+    '../assets/images/un_hombre_musculoso.jpg',
+];
+function preloadImages() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const preloadPromises = imageSourcesToPreload.map(preloadImage);
+        try {
+            yield Promise.all(preloadPromises);
+            console.log('Images preloaded successfully');
+        }
+        catch (error) {
+            console.error('Error preloading images:', error);
+        }
+    });
+}
+// Call the function to preload images
+preloadImages();
+function preloadVideo(src) {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.oncanplaythrough = () => {
+            // The video has loaded enough to play through without interruption
+            resolve();
+        };
+        video.onerror = (error) => {
+            reject(error);
+        };
+        video.src = src;
+    });
+}
+// Example usage
+const videoSourceToPreload = '../assets/videos/zero.mp4';
+function preloadVideoExample() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield preloadVideo(videoSourceToPreload);
+            console.log('Video preloaded successfully');
+        }
+        catch (error) {
+            console.error('Error preloading video:', error);
+        }
+    });
+}
+// Call the function to preload the video
+preloadVideoExample();
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let wasm = yield init();
