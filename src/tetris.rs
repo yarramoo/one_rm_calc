@@ -65,24 +65,6 @@ impl From<(i32, i32)> for Position {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Shape {
-    T, 
-    Z, 
-    O, 
-    S, 
-    I, 
-    L,
-}
-
-impl Shape {
-    fn gen_shape() -> Self {
-        let mut rng = rand::thread_rng();
-        let shapes = [Shape::T, Shape::Z, Shape::O, Shape::S, Shape::I, Shape::L];
-        *shapes.choose(&mut rng).unwrap()
-    }
-}
-
 fn rotate_squares(squares: &[Position], clockwise: bool) -> Vec<Position> {
     let mut squares = squares.to_vec();
     // This only works if the shape is positioned around (0,0).
@@ -114,6 +96,24 @@ fn rotate_squares(squares: &[Position], clockwise: bool) -> Vec<Position> {
         position.y -= y_shift;
     }
     squares
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Shape {
+    T, 
+    Z, 
+    O, 
+    S, 
+    I, 
+    L,
+}
+
+impl Shape {
+    fn gen_shape() -> Self {
+        let mut rng = rand::thread_rng();
+        let shapes = [Shape::T, Shape::Z, Shape::O, Shape::S, Shape::I, Shape::L];
+        *shapes.choose(&mut rng).unwrap()
+    }
 }
 
 impl Shape {
@@ -157,13 +157,6 @@ pub struct Tetris {
 }
 
 impl Tetris {
-    fn get_index(&self, x: u32, y: u32) -> u32 {
-        self.width * y + x
-    }
-    // Make a new shape when either starting the game or a shape has hit the ground
-    // fn gen_new_shape(&mut self) -> bool {
-
-    // }
     fn move_shape<F>(&mut self, movement: F) -> bool 
     where
         F: Fn(&[Position]) -> Vec<Position>
@@ -198,24 +191,43 @@ impl Tetris {
 
         move_possible
     }
+    fn gen_new_shape(&mut self) -> bool {
+        let shape = Shape::gen_shape();
+        let shape_squares = shape
+            .squares_taken()
+            .iter_mut()
+            .map(|position| {
+                position.shift(Direction::Up, self.height - 4)
+                        .shift(Direction::Right, self.width / 2)
+            })
+            .collect::<Vec<_>>();
+        for position in shape_squares.iter() {
+            let idx = get_index(position.x, position.y, self.width);
+            if self.grid[idx] == Cell::Taken {
+                // Game over!
+                return false;
+            }
+            // Otherwise place down new shape piece
+            self.grid[idx] = Cell::Taken;
+        }
+        self.shape = shape;
+        self.shape_squares = shape_squares;
+        true
+    }
 }
 
 #[wasm_bindgen]
 impl Tetris {
     pub fn new(width: u32, height: u32) -> Self {
-        let shape = STARTING_SHAPE;
-        let shape_squares = shape.squares_taken().iter_mut().map(|position| {
-            position.shift(Direction::Up, height-4)
-                    .shift(Direction::Right, width / 2)
-        }).collect();
-
-        Tetris { 
+        let mut tetris = Tetris { 
             width, 
             height, 
             grid: [Cell::Free].repeat((width * height) as usize),
-            shape, 
-            shape_squares: shape_squares,
-        }
+            shape: Shape::I,
+            shape_squares: Vec::new(),
+        };
+        let _ = tetris.gen_new_shape();
+        tetris
     }
     pub fn handle_move(&mut self, dir: Direction) -> bool {
         // Try movement
@@ -229,21 +241,10 @@ impl Tetris {
 
         // If the shape hit the bottom then we must generate a new shape
         if !shape_moved && dir == Direction::Down {
-            self.shape = Shape::gen_shape();
-            self.shape_squares = self.shape.squares_taken()
-                .iter_mut()
-                .map(|position| {
-                    position.shift(Direction::Up, self.height - 4)
-                    .shift(Direction::Right, self.width / 2) 
-                })
-                .collect();
-            for position in self.shape_squares.iter() {
-                let idx = get_index(position.x, position.y, self.width);
-                if self.grid[idx as usize] == Cell::Taken {
-                    // Game Over!
-                    return false;
-                }
-                self.grid[idx as usize] = Cell::Taken;
+            let new_shape_generated = self.gen_new_shape();
+            // If we cannot generate a new shape, game over
+            if !new_shape_generated {
+                return false;
             }
         }
         true
@@ -263,7 +264,8 @@ impl Display for Tetris {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for y in (0..self.height).rev() {
             for x in 0..self.width {
-                write!(f, "{}", self.grid[self.get_index(x, y) as usize])?;
+                let idx = get_index(x as i32, y as i32, self.width);
+                write!(f, "{}", self.grid[idx])?;
             }
             write!(f, "\n")?;
         }
