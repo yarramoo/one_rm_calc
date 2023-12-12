@@ -127,6 +127,12 @@ function playTetris(wasm: InitOutput) {
             case "ArrowDown":
                 tetris.handle_move(Direction.Down);
                 break;
+            case "a":
+                tetris.handle_rotate(false);
+                break;
+            case "d":
+                tetris.handle_rotate(true);
+                break;
         }
         drawGrid(ctx);
         drawCells(wasm);

@@ -167,10 +167,10 @@ function handleError(f, args) {
 }
 /**
 */
-export const Direction = Object.freeze({ Up:0,"0":"Up",Down:1,"1":"Down",Left:2,"2":"Left",Right:3,"3":"Right", });
+export const Cell = Object.freeze({ Taken:0,"0":"Taken",Free:1,"1":"Free", });
 /**
 */
-export const Cell = Object.freeze({ Taken:0,"0":"Taken",Free:1,"1":"Free", });
+export const Direction = Object.freeze({ Up:0,"0":"Up",Down:1,"1":"Down",Left:2,"2":"Left",Right:3,"3":"Right", });
 /**
 */
 export class Position {
@@ -225,6 +225,14 @@ export class Tetris {
     */
     handle_move(dir) {
         const ret = wasm.tetris_handle_move(this.__wbg_ptr, dir);
+        return ret !== 0;
+    }
+    /**
+    * @param {boolean} clockwise
+    * @returns {boolean}
+    */
+    handle_rotate(clockwise) {
+        const ret = wasm.tetris_handle_rotate(this.__wbg_ptr, clockwise);
         return ret !== 0;
     }
     /**

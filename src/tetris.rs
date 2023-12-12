@@ -6,9 +6,6 @@ use wasm_bindgen::prelude::*;
 
 use crate::utils::set_panic_hook;
 
-const STARTING_SHAPE: Shape = Shape::T;
-
-
 #[wasm_bindgen]
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -39,9 +36,6 @@ struct Position {
 }
 
 impl Position {
-    fn new(x: i32, y: i32) -> Self {
-        Self { x, y }
-    }
     fn shift(&self, dir: Direction, distance: u32) -> Position {
         let distance = distance as i32;
         match dir {
@@ -70,20 +64,20 @@ fn rotate_squares(squares: &[Position], clockwise: bool) -> Vec<Position> {
     // This only works if the shape is positioned around (0,0).
     let x_shift = -squares[0].x;
     let y_shift = -squares[0].y;
-    for mut position in squares.iter_mut() {
+    for position in squares.iter_mut() {
         position.x += x_shift;
         position.y += y_shift;
     }
     // rotate around (0,0)
     if clockwise {
-        for mut position in squares.iter_mut() {
+        for position in squares.iter_mut() {
             let x = position.x;
             let y = position.y;
             position.x = y;
             position.y = -x;
         }
     } else {
-        for mut position in squares.iter_mut() {
+        for position in squares.iter_mut() {
             let x = position.x;
             let y = position.y;
             position.x = -y;
@@ -91,7 +85,7 @@ fn rotate_squares(squares: &[Position], clockwise: bool) -> Vec<Position> {
         }
     }
     // shift back
-    for mut position in squares.iter_mut() {
+    for position in squares.iter_mut() {
         position.x -= x_shift;
         position.y -= y_shift;
     }
@@ -214,11 +208,53 @@ impl Tetris {
         self.shape_squares = shape_squares;
         true
     }
+    fn check_row_complete(&self, y: u32) -> bool {
+        for x in 0..self.width {
+            let idx = get_index(x as i32, y as i32, self.width);
+            if self.grid[idx] == Cell::Free {
+                return false;
+            }
+        }
+        true
+    }
+    fn clear_row(&mut self, y: u32) {
+        // Remove row
+        for x in 0..self.width {
+            let idx = get_index(x as i32, y as i32, self.width);
+            self.grid[idx] = Cell::Free;
+        }
+        // Shift every row down
+        for y_ in y..self.height-1 {
+            for x in 0..self.width {
+                let idx = get_index(x as i32, y_ as i32, self.width);
+                let above_idx = get_index(x as i32, y_ as i32 + 1, self.width);
+                self.grid[idx] = self.grid[above_idx];
+            }
+        }
+        // Remove top row
+        for x in 0..self.width { 
+            let y_max = self.height - 1;
+            let idx = get_index(x as i32, y_max as i32, self.width);
+            self.grid[idx] = Cell::Free;
+        }
+    }
+    fn clear_rows(&mut self) -> u8 {
+        let mut rows_removed = 0;
+        // Must check in reverse because otherwise we have to check the same row again if we clear it...
+        for row in (0..self.height).rev() {
+            if self.check_row_complete(row) {
+                self.clear_row(row);
+                rows_removed += 1;
+            }
+        }
+        rows_removed
+    }
 }
 
 #[wasm_bindgen]
 impl Tetris {
     pub fn new(width: u32, height: u32) -> Self {
+        set_panic_hook();
         let mut tetris = Tetris { 
             width, 
             height, 
@@ -241,6 +277,11 @@ impl Tetris {
 
         // If the shape hit the bottom then we must generate a new shape
         if !shape_moved && dir == Direction::Down {
+            // Check if a row has been completed!
+
+            let _rows_removed = self.clear_rows();
+            // TODO do scoring here
+
             let new_shape_generated = self.gen_new_shape();
             // If we cannot generate a new shape, game over
             if !new_shape_generated {
@@ -250,6 +291,10 @@ impl Tetris {
         true
     }
     pub fn handle_rotate(&mut self, clockwise: bool) -> bool {
+        // Don't bother rotation O
+        if self.shape == Shape::O {
+            return true;
+        }
         let movement = |positions: &[Position]| {
             rotate_squares(positions, clockwise)
         };
@@ -274,12 +319,22 @@ impl Display for Tetris {
 }
 
 #[test]
-fn test_tetris() {
-    let mut tetris = Tetris::new(10, 20);
+fn test_tetris_clear_rows() {
+    let mut tetris = Tetris::new(10, 24);
 
-    while tetris.move_shape(&Direction::Down) {
-        print!("\x1B[2J");
-        println!("{}", &tetris);
-        // sleep(Duration::from_millis(500));
+    for x in 0..tetris.width {
+        let index = get_index(x as i32, 0, tetris.width);
+        tetris.grid[index] = Cell::Taken;
     }
+
+    for x in 0..tetris.width {
+        if x % 2 == 0 {
+            let index = get_index(x as i32, 1, tetris.width);
+            tetris.grid[index] = Cell::Taken;
+        }
+    }
+
+    println!("{}", tetris);
+    tetris.clear_rows();
+    println!("{}", tetris);
 }

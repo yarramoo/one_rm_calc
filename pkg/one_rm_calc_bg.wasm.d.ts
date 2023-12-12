@@ -5,6 +5,7 @@ export function __wbg_position_free(a: number): void;
 export function __wbg_tetris_free(a: number): void;
 export function tetris_new(a: number, b: number): number;
 export function tetris_handle_move(a: number, b: number): number;
+export function tetris_handle_rotate(a: number, b: number): number;
 export function tetris_grid(a: number): number;
 export function say_hi(a: number, b: number, c: number): void;
 export function find_onerm(a: number, b: number, c: number): void;
